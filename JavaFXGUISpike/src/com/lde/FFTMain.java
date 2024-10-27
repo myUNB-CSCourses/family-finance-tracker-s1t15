@@ -1,6 +1,5 @@
 package com.lde;
 
-//adding some stuff to this
 import javafx.application.Application;
 
 import javafx.application.Platform;
