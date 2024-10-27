@@ -1,6 +1,4 @@
-# Ignore everything
 *
 
-# Except the src directory
-!JavaFXGUISpike/src/
-!README.md
+!JavaFXGUISpike/src/com/lde/FFTMain.java
+!/README.md
