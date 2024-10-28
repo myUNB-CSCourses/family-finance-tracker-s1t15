@@ -9,43 +9,31 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 public class FFTMain extends Application {
 
-    public void start(Stage stage) {
+    public void start(Stage rootWindow) {
         
-        Label message = new Label("First FX Application!");
-        message.setFont( new Font(40) );
-        
-        Label myMessage = new Label("");
-        myMessage.setFont( new Font(8));
-        myMessage.setAlignment(Pos.TOP_LEFT);
-        
-        Button helloButton = new Button("Say Hello");
-        helloButton.setOnAction( evt -> message.setText("Hello World!") );
-        Button goodbyeButton = new Button("Say Goodbye");
-        goodbyeButton.setOnAction( evt -> message.setText("Goodbye!!") );
-        Button quitButton = new Button("Quit");
-        quitButton.setOnAction( evt -> Platform.exit() );
-        
-        Button myButton = new Button("Look! It is a button");
-        myButton.setAlignment(Pos.TOP_RIGHT);
-        myButton.setOnAction( evt -> myMessage.setText("This is what it does!"));
-
-        HBox buttonBar = new HBox( 20, helloButton, goodbyeButton, quitButton );
-        buttonBar.setAlignment(Pos.CENTER);
-        BorderPane root = new BorderPane();
-        root.setCenter(message);
-        root.setRight(myMessage);
-        root.setTop(myButton);
-        root.setBottom(buttonBar);
-        
-        Scene scene = new Scene(root, 450, 200);
-        stage.setScene(scene);
-        stage.setTitle("JavaFX Test");
-        stage.show();
+        //create four panes, on the first pane (initially shown, will contain three buttons that will 
+    	//take you to another pane. Each of these panes has a "complete" button that takes you back to 
+    	//main pane.
+    	
+    	StackPane screen = new StackPane();
+    	HBox buttonBar = new HBox();
+    	Button processButton = new Button("Process something"); //once completed, will display message to indicate success or failure
+    	Button backButton = new Button("Cancel"); //takes you back to main pane
+    	processButton.setOnAction(evt -> System.out.println("Stop pressing that!"));
+    	backButton.setOnAction(evt -> System.out.println("It's not doing anything"));
+    	buttonBar.getChildren().addAll(processButton, backButton);
+    	screen.getChildren().add(buttonBar);
+    	Scene userStory = new Scene(screen, 400, 400);
+    	
+    	rootWindow.setScene(userStory);
+    	rootWindow.setTitle("This is a start!");
+    	rootWindow.show();
         
     } // end start();
     
