@@ -13,7 +13,6 @@ public class Ledger {
         
     }
 
-    
     public Ledger(String filePath) {
       
         this.transactions = LedgerReader.readTransactions(filePath);
@@ -50,20 +49,12 @@ public class Ledger {
         
     }
     
-    public boolean writeToFile() {
+    public void writeToFile() {
     	
-    	return true;
+    	LedgerWriter.writeTransactions(this.transactions);
     	
     }
 
-    public boolean write(String filePath) {
-    	
-        // TODO: Implement writing transactions to the specified file
-        return false;
-        
-    }
-
-    //May not be necessary
     public Deque<Transaction> getTransactions() {
     	
         return transactions;
