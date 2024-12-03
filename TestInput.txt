@@ -1,0 +1,10 @@
+2024-11-10: 25.67: McDonalds
+2024-11-11: 31.23: CannabisNB
+2024-11-12: 36.25: LiquorNB
+2024-11-12: 48.56: Local Garage
+2024-11-13: 100.56: Really Nice Restaurant
+2024-11-13: 1000.15: Costco
+2024-11-13: 545.25: Walmart
+2024-11-14: 25.62: Zellers
+2024-11-14: 1.99: Tim Hortons
+2024-11-15: 5.99: Gas Station
