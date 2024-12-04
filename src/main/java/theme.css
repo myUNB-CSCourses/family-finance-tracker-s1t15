@@ -1,0 +1,94 @@
+.region {
+    -fx-background-color: #f9f9f9; 
+    -fx-padding: 20px;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-text-fill: #000000;
+}
+
+.label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #000000; 
+    -fx-font-weight: bold;
+    -fx-padding: 5px;
+}
+
+.label-instruction {
+    -fx-font-size: 13px;
+    -fx-text-fill: #4d4d4d;
+}
+
+.button {
+    -fx-background-color: #00796b; 
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 10px 20px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand; 
+}
+
+.button:hover {
+    -fx-background-color: #004d40;
+}
+
+.button:focused {
+    -fx-background-color: #00332d; 
+}
+
+.table-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cccccc; 
+    -fx-border-width: 1px;
+    -fx-padding: 10px;
+}
+
+.table-column {
+    -fx-font-size: 13px;
+    -fx-padding: 5px;
+    -fx-alignment: CENTER;
+}
+
+.table-view .cell {
+    -fx-padding: 10px;
+}
+
+.table-view .row:even {
+    -fx-background-color: #f1f1f1; 
+}
+
+.table-view .row:odd {
+    -fx-background-color: #ffffff; 
+}
+
+.table-view .row:selected {
+    -fx-background-color: #00796b; 
+    -fx-text-fill: white;
+}
+
+.combo-box {
+    -fx-padding: 5px;
+    -fx-border-color: #888888;
+    -fx-border-radius: 5px;
+    -fx-background-color: #f1f1f1; 
+    -fx-text-fill: #000000; 
+    -fx-font-size: 13px;
+}
+
+.combo-box:focused {
+    -fx-border-color: #00796b; 
+    -fx-background-color: #e0e0e0; 
+}
+
+.hbox {
+    -fx-spacing: 15px;
+    -fx-padding: 10px;
+}
+
+.vbox {
+    -fx-spacing: 10px;
+}
+
+.combo-box:focused, .button:focused {
+    -fx-border-color: #00796b;
+    -fx-background-color: #e0e0e0;
+}

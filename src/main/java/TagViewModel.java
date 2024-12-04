@@ -1,135 +1,139 @@
-//Contributing Authors: Lloyd Edison (Lionel 053)
-package main.java;
+//Contributing Author: Lloyd Edison (Lionel053)
+package test;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
-import javafx.beans.property.SimpleObjectProperty;
+
+import java.time.format.DateTimeFormatter;
+
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.layout.Region;
-import javafx.util.Builder;
 
 public class TagViewModel {
 
-	Builder<Region> builder;
-	Ledger ledger;																//Model from the Ledger class
-	Ledger processedTransactions;												//A collection of processed transactions removed from the view (to be used to write to excel)
-	ObservableList<Transaction> viewLedger;										//For the table view object to let buyer know what transactions have been tagged
-	ObjectProperty<Transaction> currentTransaction;
-	
-	StringProperty buyerChoice = new SimpleStringProperty("");
-	StringProperty categoryChoice = new SimpleStringProperty("");
-	
-	Rules ruleList = new Rules();
-	
-	public TagViewModel() {
-		
-		this.ledger = new Ledger(true);											//Calling test method that generates DummyLedger, replace with file path
-		this.processedTransactions = new Ledger(this.ledger.getMonthYear());	//Uses the unprocessed ledger's date to start a processed ledger
-		
-		
-		this.viewLedger = FXCollections.observableArrayList();
-		checkForRules();														//automatically tag any transactions add it to the table view
-		this.currentTransaction = new SimpleObjectProperty<>(ledger.getTransaction(0));
-		
-		builder = new TagView(viewLedger, this::addButtonAction, this::writeButtonAction, 
-								buyerList(), categoryList(),currentTransaction, this.buyerChoice, 
-								this.categoryChoice);
+    private ObservableList<Transaction> unprocessedTransactions;
+    private ObservableList<Transaction> processedTransactions;
+    private StringProperty currentTransaction;
+    private StringProperty completionMessage;
+
+    public TagViewModel(Ledger ledger) {
+       
+        this.unprocessedTransactions = FXCollections.observableArrayList(ledger.getTransactions());
+        
+        this.processedTransactions = FXCollections.observableArrayList();
+        
+        if (!unprocessedTransactions.isEmpty()) {
+        	
+            this.currentTransaction = new SimpleStringProperty(format(unprocessedTransactions.get(0)));
+            
+        } else {
+        	
+            this.currentTransaction = new SimpleStringProperty("There are no transactions to process");
+            
+        }
+        
+        completionMessage = new SimpleStringProperty("");
+        
+    }
+
+    public void nextTransaction() {
+    	
+        if (!unprocessedTransactions.isEmpty()) {
+           
+            Transaction transaction = unprocessedTransactions.remove(0);
+            
+            processedTransactions.add(transaction);
+            
+            if (!unprocessedTransactions.isEmpty()) {
+            	
+                currentTransaction.set(format(unprocessedTransactions.get(0)));
+                
+            } else {
+            	
+                currentTransaction.set("No more transaction to process"); 
+                
+            }
+            
+        }
+        
+    }
+
+    private String format(Transaction t) {
+    	
+    	DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MMMM d");
+		return String.format(t.getDate().format(dateFormatter) + " | $" + t.getAmount() + 
+								" | " + t.getMerchant() + " | " + t.getBuyer() + " | " + t.getCategory());
 		
 	}
 
-	/*For testing purposes, will need to be replaced by a feature that will allow buyer to modify a category list*/
-	private ArrayList<String> categoryList() {
-		
-		ArrayList<String> categoryList = new ArrayList<>();
-		categoryList.add("Dining Out");
-		categoryList.add("Recreation");
-		categoryList.add("Shopping/Grocery");
-		categoryList.add("Shopping");
-		categoryList.add("Automotive Fuel");
-		categoryList.add("Takeout Coffee");
-		categoryList.add("Car Repairs");
-		
-		return categoryList;
-	}
+	public void removeTransaction(Transaction transaction) {
+    	
+        if (processedTransactions.remove(transaction)) {
+           
+            unprocessedTransactions.add(0, transaction);
+            
+            if (!unprocessedTransactions.isEmpty()) {
+            	
+            	currentTransaction.set(format(unprocessedTransactions.get(0)));
+                
+            } else {
+            	
+                currentTransaction.set(""); 
+                
+            }
+        }
+        
+    }
 
-	/*For testing purposes, will need to be replaced by a feature that will allow buyer to modify a buyer list*/
-	private ArrayList<String> buyerList() {
-		
-		ArrayList<String> buyerList = new ArrayList<>();
-		buyerList.add("Bob");
-		buyerList.add("Cathy");
-		
-		return buyerList;
-	}
+    public ObservableList<Transaction> getUnprocessedTransactions() {
+    	
+        return unprocessedTransactions;
+        
+    }
 
-	public Region getView() {
-		
-		return this.builder.build();
-		
-	}
-	
-	/*This button will allow the buyer to add the current transaction to the table view*/
-	private void addButtonAction() {
-		if (this.ledger.getLedger().size() != 0) {
-			currentTransaction.get().setBuyer(buyerChoice.get());
-			currentTransaction.get().setCategory(categoryChoice.get());
-			viewLedger.add(currentTransaction.get());
-			ledger.removeTransaction();
-			try {
-				currentTransaction.set(ledger.getTransaction(0));
-			} catch(Throwable t) {
-				currentTransaction.set(new Transaction());
-			}
-		} else {
-			//do nothing
-		}
-		
-		
-	}
-	
-	/*Used for writing to the Ledger class that will call an Excel reader to write data*/
-	private void writeButtonAction() {
-		
-		Iterator<Transaction> i = viewLedger.iterator();
-		ArrayList<Transaction> dummy = new ArrayList<>();
-		
-		while (i.hasNext()) {
-			dummy.add(i.next());
-			i.remove();
-		}
-		
-		processedTransactions.setLedger(dummy);
-		processedTransactions.write();
-		
-	}
-	
-	/*Remove all transactions that existing rules and add it to the table view*/
-	private void checkForRules() {
-		
-		String check;
-		Transaction t;
-		int j = 0;
-		
-		for (int i = 0; i < ledger.getLedger().size(); i++) {
-			
-			t = this.ledger.getTransaction(j);
-			check = ruleList.getBuyer(t.getMerchant());
-			if (check == null) {
-				j = j + 1;
-			}
-			else {
-				t.setBuyer(check);
-				this.viewLedger.add(t);
-				this.ledger.removeTransaction(j);
-			}
-			
-		}
-		
-	}
-	
+    public ObservableList<Transaction> getProcessedTransactions() {
+    	
+        return processedTransactions;
+        
+    }
+
+    public StringProperty currentTransactionProperty() {
+    	
+        return currentTransaction;
+        
+    }
+    
+    public StringProperty getCompletionMessage() {
+    	
+    	return completionMessage;
+    	
+    }
+    
+    public void setCompletionMessage(boolean b) {
+    	
+    	if (b) {
+    		
+    		completionMessage.set("Ledger successfully written to Excel, you can close this window");
+    		
+    	} else {
+    		
+    		completionMessage.set("Unprocessed transactions remain, please complete before hitting write");
+    		
+    	}
+    }
+/*
+    //May not be necessary, review later
+    public String getCurrentTransaction() {
+    	
+        return currentTransaction.get();
+        
+    }
+
+    //May not be necessary, review later
+    public void setCurrentTransaction(String nextTransaction) {
+    	
+        currentTransaction.set(nextTransaction);
+        
+    }
+*/ 
 }

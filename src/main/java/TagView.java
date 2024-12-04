@@ -1,162 +1,151 @@
-//Contributing Authors: Lloyd Edison (Lionel 053), James Ukandu 
-//Code snippets were used from James' previous commit (see f4d19f2 for their original code).
-package main.java;
+//Contributing Author: Lloyd Edison (Lionel 053)
+package test;
 
 import java.math.BigDecimal;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
-
-import javafx.beans.binding.StringBinding;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
-import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.util.Builder;
 
 public class TagView implements Builder<Region> {
-	
-	ObservableList<Transaction> ledger;
-	ObjectProperty<Transaction> currentTransaction;
-	ObjectProperty<Transaction> removalChoice;
-	
-	ArrayList<String> buyerList;
-	ArrayList<String> categoryList;
-	
-	StringProperty buyerChoice;
-	StringProperty categoryChoice;
-	
-	Runnable addButtonAction;
-	Runnable writeTransactionButton;
-	
-	public TagView(ObservableList<Transaction> ledger, Runnable add, Runnable write, 
-					ArrayList<String> buyerList, ArrayList<String> categoryList,
-					ObjectProperty<Transaction> currentTransaction, StringProperty buyerChoice, 
-					StringProperty categoryChoice) {
-		
-		this.addButtonAction = add;
-		this.writeTransactionButton = write;
-		this.buyerList = buyerList;
-		this.categoryList = categoryList;
-		this.buyerChoice = buyerChoice;
-		this.categoryChoice = categoryChoice;
-		this.ledger = ledger;
-		this.currentTransaction = currentTransaction;
-		
-	}
 
-	@Override
-	public Region build() {
-		
-		VBox mainLayout = new VBox(10);
-        mainLayout.setPadding(new Insets(15));
+    private TagViewModel tagViewModel;
+    private TableView<Transaction> ledgerView;
+    private Runnable writeButtonAction;
+    private ComboBox<String> comboBoxBuyer;    //needed so to avoid the problem with not selecting a new buyer or category each new transaction presented
+    private ComboBox<String> comboBoxCategory; //likewise, same as above
+    
+    public TagView(TagViewModel tagViewModel, Runnable writeButtonAction) {
+    	
+        this.tagViewModel = tagViewModel;
+        this.writeButtonAction = writeButtonAction;
         
-		mainLayout.getChildren().addAll(buttonBox(),inputBox(), setTableView(ledger));
-		return mainLayout;
-		
-	}
-	
-	private Node buttonBox() {
-		
-		HBox transactionControls = new HBox();
-		transactionControls.getChildren().addAll( getButton("Add", addButtonAction), 
-									getButton("Write", writeTransactionButton));
-		return transactionControls;
-		
-	}
+    }
 
-	private Node getButton(String string, Runnable runnable) {
-		
-		Button button = new Button(string);
-		button.setOnAction(evt -> runnable.run());
+    @Override
+    public Region build() {
+     
+        VBox results = new VBox(10);
+
+        results.getChildren().addAll(createCurrentTransactionLabel(), createCurrentTransactionText(), createSelectInstructionText(),
+        								createComboBoxes(), createAddButton(), createTableView(), createRemoveButton(),
+        								createWriteButton(), createCompletionMessageLabel());
+
+        return results;
+        
+    }
+
+    private Node createAddButton() {
+    	
+		Button button = new Button("Add");
+		Tooltip addButtonToolTip = new Tooltip("Click to add transaction once you select a buyer and category");
+		Tooltip.install(button, addButtonToolTip);
+		button.setOnAction(evt -> {tagViewModel.getUnprocessedTransactions().get(0).setBuyer(comboBoxBuyer.getValue()); 
+									tagViewModel.getUnprocessedTransactions().get(0).setCategory(comboBoxCategory.getValue()); tagViewModel.nextTransaction();});
 		return button;
 		
 	}
 
-	private Node inputBox() {
-		
-		VBox vBox = new VBox(10);
-		vBox.getChildren().addAll(getLabel("date"), getLabel("amount"), getLabel("merchant"), 
-				getBuyerBox("Select Buyer", buyerList), getCategoryBox("Select Category", categoryList));
-		
-		return vBox;
-		
-	}
-	
-	private Node getCategoryBox(String string, ArrayList<String> list) {
-		
-		ComboBox<String> comboBox = new ComboBox<>();
-		comboBox.setPromptText(string);
-		comboBox.getItems().addAll(list);
-		comboBox.setOnAction(evt -> {
-			categoryChoice.set(comboBox.getValue());
-		});
-		return comboBox;
+	private Node createCurrentTransactionLabel() {
+    	
+		Label text = new Label("Current transaction to process");
+		return text;
 		
 	}
 
-	private Node getBuyerBox(String string, ArrayList<String> list) {
+	private Node createCurrentTransactionText() {
+    	
+        Label text = new Label();
+        StringProperty currentTransaction = tagViewModel.currentTransactionProperty();
+        text.textProperty().bind(currentTransaction);
+        return text;
+        
+    }
+
+    private Node createSelectInstructionText() {
+    	
+        return new Label("Please select a 'Buyer' and 'Category'.");
+        
+    }
+
+    private Node createComboBoxes() {
+    	
+        HBox comboBoxContainer = new HBox(10);
+        comboBoxContainer.setStyle("-fx-padding: 10;");
+        
+        comboBoxContainer.getChildren().addAll(new Label("Buyer: "), getBuyerCombo(), new Label("Category: "), getCategoryCombo());
+
+        return comboBoxContainer;
+        
+    }
+    
+    private Node getBuyerCombo() {
 		
-		ComboBox<String> comboBox = new ComboBox<>();
-		comboBox.setPromptText(string);
-		comboBox.getItems().addAll(list);
-		comboBox.setOnAction(evt -> {
-			buyerChoice.set(comboBox.getValue());
-		});
-		return comboBox;
-		
+		/*Test method for adding buyers temporarily, remove when feature is fully integrated*/
+    	ArrayList<String> buyerList = createBuyerList();
+    	
+    	comboBoxBuyer = new ComboBox<>();
+    	comboBoxBuyer.getItems().addAll(buyerList);
+   
+    	return comboBoxBuyer;
+    	
+    }
+    
+    private Node getCategoryCombo() {
+    	
+    	/*Test method for adding category temporarily, remove when feature is fully integrated*/
+    	ArrayList<String> categoryList = createCategoryList();
+    	
+    	comboBoxCategory = new ComboBox<>();
+    	comboBoxCategory.getItems().addAll(categoryList);
+    	
+    	return comboBoxCategory;
+    	
 	}
-	
-	private Node getLabel(String str) {
-		
-		Label label = new Label();
-		
-		StringBinding binder = new StringBinding() {
-			{
-				bind(currentTransaction);
-			}
-			@Override
-			protected String computeValue() {
-				Transaction dummy = currentTransaction.get();
-				switch (str) {
-				case "date":
-					return dummy.getFormattedDate();
-				case "amount":
-					return dummy.getFormattedAmount();
-				case "merchant":
-					return dummy.getMerchant();
-				default:
-					return null;
-				}
-			}
-		};
-		label.textProperty().bind(binder);
-		
-		return label;
-		
-	}
-	
-	@SuppressWarnings({ "unchecked" })
-	private TableView<Transaction> setTableView(ObservableList<Transaction> ledger) {
-		
-		TableColumn<Transaction, LocalDate> dateColumn = new TableColumn<>("Date");
+    
+    private Node createRemoveButton() {
+    	
+        Button removeButton = new Button("Remove");
+        Tooltip removeButtonToolTip = new Tooltip("Click to remove a selected transaction from table and it will show back up at the top");
+		Tooltip.install(removeButton, removeButtonToolTip);
+        removeButton.setOnAction(evt -> tagViewModel.removeTransaction(ledgerView.getSelectionModel().getSelectedItem()));
+        return removeButton;
+        
+    }
+    
+    private Node createWriteButton() {
+    	
+    	Button writeButton = new Button("Write");
+    	Tooltip writeButtonToolTip = new Tooltip("Click to write to Excel");
+		Tooltip.install(writeButton, writeButtonToolTip);
+    	writeButton.setOnAction(evt -> writeButtonAction.run());
+    	
+    	return writeButton;
+    	
+    }
+    
+    private Node createCompletionMessageLabel() {
+    	
+    	Label label = new Label();
+    	label.textProperty().bind(tagViewModel.getCompletionMessage());
+    	return label;
+    	
+    }
+
+    @SuppressWarnings("unchecked")
+	private TableView<Transaction> createTableView() {
+    	
+    	TableColumn<Transaction, LocalDate> dateColumn = new TableColumn<>("Date");
 		dateColumn.setMinWidth(75);
 		dateColumn.setCellValueFactory(new PropertyValueFactory<>("date"));
 		
-		TableColumn<Transaction, BigDecimal> amountColumn = new TableColumn<>("Amount");
+		TableColumn<Transaction, BigDecimal> amountColumn = new TableColumn<>("Amount ($)");
 		amountColumn.setMinWidth(75);
-		amountColumn.setCellValueFactory(new PropertyValueFactory<>("formattedAmount"));
+		amountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
 		
 		TableColumn<Transaction, String> merchantColumn = new TableColumn<>("Merchant");
 		merchantColumn.setMinWidth(200);
@@ -170,17 +159,42 @@ public class TagView implements Builder<Region> {
 		categoryColumn.setMinWidth(200);
 		categoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
 		
-		TableView<Transaction> ledgerView = new TableView<>();
-		ledgerView.setItems(ledger);
+		ledgerView = new TableView<>();
+		ledgerView.setItems(tagViewModel.getProcessedTransactions());
 		ledgerView.getColumns().addAll(dateColumn, amountColumn, merchantColumn, buyerColumn, categoryColumn);
-		ledgerView.getSelectionModel().selectedItemProperty().addListener((obs, oldValue, newValue) -> {
-			
-			this.removalChoice = new SimpleObjectProperty<>(newValue);
-			
-		});
+
+        return ledgerView;
+        
+    }
+    
+    /*Remove when buyer feature is fully implemented, this is for testing only*/
+    private ArrayList<String> createBuyerList() {
+    	
+    	ArrayList<String> buyerList = new ArrayList<>();
+    	buyerList.add("");
+		buyerList.add("Bob");
+		buyerList.add("Cathy");
 		
-		return ledgerView;
+		return buyerList;
 		
 	}
 
+    /*Remove when category feature is fully implemented, this is for testing only*/
+	private ArrayList<String> createCategoryList() {
+		
+		ArrayList<String> categoryList = new ArrayList<>();
+		categoryList.add("");
+		categoryList.add("Dining Out");
+		categoryList.add("Recreation");
+		categoryList.add("Shopping/Grocery");
+		categoryList.add("Shopping");
+		categoryList.add("Automotive Fuel");
+		categoryList.add("Takeout Coffee");
+		categoryList.add("Car Repairs");
+		
+		return categoryList;
+		
+	}
+    
 }
+
